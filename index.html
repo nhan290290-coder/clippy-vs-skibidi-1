@@ -1,1 +1,1538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Clippy vs Skibidi: Desktop Defense</title>
+    <!-- Tailwind CSS for modern responsive layout wrapper -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    <style>
+        * {
+            user-select: none;
+            -webkit-user-select: none;
+            box-sizing: border-box;
+            touch-action: manipulation;
+        }
 
+        body {
+            font-family: 'Press Start 2P', monospace;
+            background-color: #008080;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s ease;
+        }
+
+        /* Wallpapers */
+        .wp-teal { background-color: #008080 !important; }
+        .wp-bliss { 
+            background: linear-gradient(180deg, #3a8cdb 0%, #63b3ed 50%, #73be42 50%, #4c9a2a 100%) !important; 
+        }
+        .wp-cyber { 
+            background: linear-gradient(135deg, #0d001a 0%, #2a004f 50%, #001233 100%) !important; 
+        }
+
+        /* CRT Filter Effect Overlay */
+        .crt-overlay::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            z-index: 20;
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+        }
+
+        /* Windows 95 UI Framework Styling */
+        .win95-panel {
+            background: #c0c0c0;
+            border: 2px solid;
+            border-color: #ffffff #808080 #808080 #ffffff;
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.4);
+        }
+
+        .win95-inset {
+            border: 2px solid;
+            border-color: #808080 #ffffff #ffffff #808080;
+            background: #000;
+        }
+
+        .win95-btn {
+            background: #c0c0c0;
+            border: 2px solid;
+            border-color: #ffffff #808080 #808080 #ffffff;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 10px;
+            color: #000;
+            cursor: pointer;
+            padding: 4px 8px;
+            box-shadow: 1px 1px 0 #000;
+        }
+
+        .win95-btn:active {
+            border-color: #808080 #ffffff #ffffff #808080;
+            transform: translate(1px, 1px);
+            box-shadow: none;
+        }
+
+        .win95-titlebar {
+            background: linear-gradient(90deg, #000080, #1084d0);
+            color: white;
+            padding: 4px 6px;
+            font-size: 11px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Canvas Screen */
+        canvas {
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            display: block;
+            width: 100%;
+            height: auto;
+            max-width: 800px;
+            max-height: 450px;
+        }
+
+        /* Mobile Controls */
+        .touch-btn {
+            background: #c0c0c0;
+            border: 2px solid;
+            border-color: #ffffff #808080 #808080 #ffffff;
+            font-family: 'Press Start 2P', monospace;
+            color: black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: manipulation;
+        }
+
+        .touch-btn:active {
+            border-color: #808080 #ffffff #ffffff #808080;
+            background: #a0a0a0;
+        }
+
+        /* Modal windows */
+        .modal-bg {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(2px);
+        }
+    </style>
+</head>
+<body id="bgContainer" class="wp-teal flex flex-col items-center justify-center min-h-screen p-2">
+
+    <div id="windowFrame" class="win95-panel relative w-full max-w-[820px] crt-overlay">
+        <!-- Titlebar -->
+        <div class="win95-titlebar">
+            <span class="flex items-center gap-2">
+                <span class="text-yellow-300">📎</span> 
+                <span id="windowTitle" class="tracking-wide">CLIPPY_VS_SKIBIDI_DESKTOP_DEFENSE.EXE</span>
+            </span>
+            <div class="flex gap-1 text-black font-bold">
+                <button id="btnCRT" class="win95-btn text-[9px] py-0.5">CRT: ON</button>
+                <button id="btnSound" class="win95-btn text-[9px] py-0.5">🔊 SFX: ON</button>
+                <button id="btnMusic" class="win95-btn text-[9px] py-0.5">🎵 BGM: OFF</button>
+            </div>
+        </div>
+
+        <!-- Toolbar Menu -->
+        <div class="bg-[#c0c0c0] px-2 py-1 border-b border-gray-400 flex flex-wrap gap-2 text-[9px] text-gray-800">
+            <button id="btnShop" class="win95-btn text-[9px]">🛒 UPGRADES</button>
+            <button id="btnWallpaper" class="win95-btn text-[9px]">🖼️ WALLPAPER</button>
+            <button id="btnShare" class="win95-btn text-[9px]">🌐 SHARE / EMBED</button>
+            <span class="ml-auto font-mono text-gray-700 flex items-center">PINS: <span id="pinCounter" class="text-blue-900 font-bold ml-1">0</span> 📎</span>
+        </div>
+
+        <!-- Main Game Viewport -->
+        <div class="win95-inset relative overflow-hidden">
+            <canvas id="gameCanvas" width="800" height="450"></canvas>
+        </div>
+
+        <!-- Retro Taskbar Footer -->
+        <div class="bg-[#c0c0c0] border-t-2 border-white p-1 flex justify-between items-center text-[9px] text-gray-800">
+            <div class="flex items-center gap-2">
+                <div class="border-2 border-gray-100 border-r-gray-600 border-b-gray-600 px-2 py-0.5 bg-gray-200 font-bold flex items-center gap-1 shadow-sm">
+                    <span class="text-blue-700 text-sm">🪟</span> Start
+                </div>
+                <span class="hidden sm:inline font-mono text-[10px]">Windows 95 Arcade Edition</span>
+            </div>
+            <div class="border-2 border-gray-600 border-r-white border-b-white px-2 py-0.5 bg-gray-200 font-mono text-[9px]">
+                <span>[A/D/Left/Right] Move | [W/Space/Up] Jump | [J/Click/Z] Fire</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- On-screen Touch Controls for Mobile Devices -->
+    <div id="touchControls" class="w-full max-w-[820px] flex justify-between items-center mt-2 px-1 sm:hidden">
+        <div class="flex gap-2">
+            <button id="btnLeft" class="touch-btn w-14 h-12 text-lg rounded-sm">◀</button>
+            <button id="btnRight" class="touch-btn w-14 h-12 text-lg rounded-sm">▶</button>
+        </div>
+        <div class="flex gap-2">
+            <button id="btnJump" class="touch-btn w-16 h-12 text-xs rounded-sm">JUMP</button>
+            <button id="btnAttack" class="touch-btn w-20 h-12 text-xs bg-red-200 font-bold rounded-sm">FIRE</button>
+        </div>
+    </div>
+
+    <!-- Modal: Upgrades Shop -->
+    <div id="modalShop" class="fixed inset-0 modal-bg z-50 hidden flex items-center justify-center p-4">
+        <div class="win95-panel w-full max-w-md p-2">
+            <div class="win95-titlebar mb-2">
+                <span>📎 CLIPPY OFFICE UPGRADES</span>
+                <button id="btnCloseShop" class="win95-btn py-0 px-1 font-bold">X</button>
+            </div>
+            <div class="bg-white p-3 border-2 border-gray-600 
+                        <div class="font-bold">⚡ Speared Clip Speed</div>
+                        <div class="text-[9px] text-gray-600">Increases paperclip projectile velocity</div>
+                    </div>
+                    <button id="buyWeaponSpeed" class="win95-btn">UPGRADE (50 📎)</button>
+                </div>
+                <div class="flex justify-between items-center border-b pb-2">
+                    <div>
+                        <div class="font-bold">🛡️ Paper Shield HP</div>
+                        <div class="text-[9px] text-gray-600">Max Shield durability +1</div>
+                    </div>
+                    <button id="buyShieldHp" class="win95-btn">UPGRADE (75 📎)</button>
+                </div>
+                <div class="flex justify-between items-center border-b pb-2">
+                    <div>
+                        <div class="font-bold">📊 Excel Laser Overclock</div>
+                        <div class="text-[9px] text-gray-600">Laser powerup duration +3s</div>
+                    </div>
+                    <button id="buyLaserDuration" class="win95-btn">UPGRADE (100 📎)</button>
+                </div>
+                <div class="flex justify-between items-center">
+                    <div>
+                        <div class="font-bold">👟 Paper Agility</div>
+                        <div class="text-[9px] text-gray-600">Clippy movement speed +15%</div>
+                    </div>
+                    <button id="buySpeed" class="win95-btn">UPGRADE (60 📎)</button>
+                </div>
+            </div>
+            <div class="mt-3 flex justify-between items-center text-xs">
+                <span>PINS: <span id="shopPinCount" class="font-bold">0</span> 📎</span>
+                <button id="btnCloseShop2" class="win95-btn">CLOSE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Web Share & Deployment Code -->
+    <div id="modalShare" class="fixed inset-0 modal-bg z-50 hidden flex items-center justify-center p-4">
+        <div class="win95-panel w-full max-w-lg p-2">
+            <div class="win95-titlebar mb-2">
+                <span>🌐 EMBED / PUBLISH TO WEB</span>
+                <button id="btnCloseShare" class="win95-btn py-0 px-1 font-bold">X</button>
+            </div>
+            <div class="bg-white p-3 border-2 border-gray-600 text-black text-[10px] font-mono space-y-3">
+                <div>
+                    <p class="font-bold mb-1">HTML Embed Code (for website or blog):</p>
+                    <textarea readonly id="embedCode" class="w-full h-16 p-1 border border-gray-400 bg-gray-50 text-[9px] font-mono"></textarea>
+                    <button id="btnCopyEmbed" class="win95-btn mt-1">COPY EMBED CODE</button>
+                </div>
+                <div class="border-t pt-2">
+                    <p class="font-bold mb-1">🚀 Quick Deploy Instructions:</p>
+                    <ol class="list-decimal pl-4 space-y-1 text-[9px]">
+                        <li>Save this entire code as <code class="bg-gray-200 px-1">index.html</code>.</li>
+                        <li>Upload directly to <b>GitHub Pages</b>, <b>Netlify Drop</b>, or <b>Vercel</b>.</li>
+                        <li>Your game is instantly live on the web!</li>
+                    </ol>
+                </div>
+            </div>
+            <div class="mt-3 text-right">
+                <button id="btnCloseShare2" class="win95-btn">CLOSE</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Web Audio API Retro Sound Effects & Chiptune Generator
+        class RetroAudioEngine {
+            constructor() {
+                this.ctx = null;
+                this.sfxEnabled = true;
+                this.musicEnabled = false;
+                this.bgmTimer = null;
+                this.currentTrack = 0;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioCtx();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            playBeep(freq, duration, type = 'square', volume = 0.1) {
+                if (!this.sfxEnabled) return;
+                this.init();
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                    gain.gain.setValueAtTime(volume, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + duration);
+                } catch(e){}
+            }
+
+            playJump() {
+                if (!this.sfxEnabled) return;
+                this.init();
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(420, this.ctx.currentTime + 0.12);
+                    gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0, this.cttext-black text-xs font-mono space-y-3">
+                <div class="flex justify-between items-center border-b pb-2">
+                    <div>x.currentTime + 0.12);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.12);
+                } catch(e){}
+            }
+
+            playShoot() {
+                if (!this.sfxEnabled) return;
+                this.init();
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(650, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(120, this.ctx.currentTime + 0.08);
+                    gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.08);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.08);
+                } catch(e){}
+            }
+
+            playLaser() {
+                if (!this.sfxEnabled) return;
+                this.init();
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(900, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(300, this.ctx.currentTime + 0.15);
+                    gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.15);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.15);
+                } catch(e){}
+            }
+
+            playExplode() {
+                if (!this.sfxEnabled) return;
+                this.init();
+                try {
+                    const bufferSize = this.ctx.sampleRate * 0.25;
+                    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                    const output = buffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) {
+                        output[i] = Math.random() * 2 - 1;
+                    }
+                    const noise = this.ctx.createBufferSource();
+                    noise.buffer = buffer;
+
+                    const filter = this.ctx.createBiquadFilter();
+                    filter.type = 'lowpass';
+                    filter.frequency.value = 600;
+
+                    const gain = this.ctx.createGain();
+                    gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.25);
+
+                    noise.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    noise.start();
+                } catch(e){}
+            }
+
+            playCoin() {
+                if (!this.sfxEnabled) return;
+                this.playBeep(987.77, 0.08, 'sine', 0.1);
+                setTimeout(() => this.playBeep(1318.51, 0.12, 'sine', 0.1), 80);
+            }
+
+            playPowerup() {
+                if (!this.sfxEnabled) return;
+                const freqs = [261, 329, 392, 523, 659];
+                freqs.forEach((f, idx) => {
+                    setTimeout(() => this.playBeep(f, 0.08, 'triangle', 0.1), idx * 50);
+                });
+            }
+
+            toggleMusic() {
+                this.musicEnabled = !this.musicEnabled;
+                if (this.musicEnabled) {
+                    this.startBGM();
+                } else {
+                    if (this.bgmTimer) clearInterval(this.bgmTimer);
+                }
+                return this.musicEnabled;
+            }
+
+            startBGM() {
+                if (this.bgmTimer) clearInterval(this.bgmTimer);
+                const tracks = [
+                    [220, 261, 293, 329, 220, 261, 392, 329], // Track 1: Desktop Defense
+                    [164, 196, 220, 246, 164, 196, 293, 246]  // Track 2: Boss Fight
+                ];
+                let noteIdx = 0;
+                this.bgmTimer = setInterval(() => {
+                    if (this.musicEnabled) {
+                        const curTrack = tracks[this.currentTrack % tracks.length];
+                        this.playBeep(curTrack[noteIdx], 0.1, 'square', 0.025);
+                        noteIdx = (noteIdx + 1) % curTrack.length;
+                    }
+                }, 180);
+            }
+        }
+
+        const audio = new RetroAudioEngine();
+
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const GAME_WIDTH = 800;
+        const GAME_HEIGHT = 450;
+        const GROUND_Y = 380;
+
+        let gameState = 'MENU'; // 'MENU', 'PLAYING', 'GAMEOVER', 'VICTORY'
+        let gameMode = 'ARCADE'; // 'ARCADE' or 'CAMPAIGN'
+        let currentLevel = 0;
+        let score = 0;
+        let highScore = localStorage.getItem('clippy_high_score_v2') || 0;
+        let pinsCollected = parseInt(localStorage.getItem('clippy_pins') || '0');
+        let wave = 1;
+        let waveTimer = 0;
+        let waveEnemiesToSpawn = 10;
+        let enemiesSpawnedInWave = 0;
+        let bossActive = false;
+        let screenShakeTime = 0;
+
+        // Upgrade Levels
+        const upgrades = {
+            weaponSpeed: parseInt(localStorage.getItem('upg_weaponSpeed') || '0'),
+            shieldHp: parseInt(localStorage.getItem('upg_shieldHp') || '0'),
+            laserDuration: parseInt(localStorage.getItem('upg_laserDuration') || '0'),
+            speed: parseInt(localStorage.getItem('upg_speed') || '0')
+        };
+
+        // Campaign Levels Definition
+        const campaignLevels = [
+            { name: "Level 1: Desktop Invasion", bgName: "Teal Desktop", targetEnemies: 12, boss: false },
+            { name: "Level 2: System32 Corruption", bgName: "Dark Terminal", targetEnemies: 18, boss: false },
+            { name: "Level 3: Internet Explorer Crash", bgName: "Browser Grid", targetEnemies: 25, boss: true },
+            { name: "Level 4: Recycle Bin Revolt", bgName: "Trash Vault", targetEnemies: 30, boss: false },
+            { name: "Level 5: Cloud Server Titan", bgName: "Cloud Matrix", targetEnemies: 40, boss: true }
+        ];
+
+        // Input States
+        const keys = { left: false, right: false, up: false, attack: false };
+
+        class ClippyHero {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = 100;
+                this.y = GROUND_Y - 40;
+                this.width = 32;
+                this.height = 42;
+                this.vx = 0;
+                this.vy = 0;
+                this.baseSpeed = 4.5 + (upgrades.speed * 0.6);
+                this.jumpPower = -11.5;
+                this.gravity = 0.58;
+                this.isGrounded = false;
+                this.facingRight = true;
+                this.health = 5;
+                this.maxHealth = 5;
+                this.invulnerableTimer = 0;
+                this.animFrame = 0;
+                this.animTimer = 0;
+                
+                // Weapon & Powerups
+                this.weaponType = 'PENCIL'; // 'PENCIL', 'EXCEL_LASER', 'NOTE_SPREAD'
+                this.powerupTimer = 0;
+                this.hasShield = false;
+                this.shieldHealth = 0;
+                this.attackCooldown = 0;
+            }
+
+            update() {
+                // Movement
+                if (keys.left) {
+                    this.vx = -this.baseSpeed;
+                    this.facingRight = false;
+                } else if (keys.right) {
+                    this.vx = this.baseSpeed;
+                    this.facingRight = true;
+                } else {
+                    this.vx *= 0.7;
+                }
+
+                // Jump
+                if (keys.up && this.isGrounded) {
+                    this.vy = this.jumpPower;
+                    this.isGrounded = false;
+                    audio.playJump();
+                }
+
+                // Gravity
+                this.vy += this.gravity;
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Screen Boundary Constraints
+                if (this.x < 10) this.x = 10;
+                if (this.x + this.width > GAME_WIDTH - 10) this.x = GAME_WIDTH - 10 - this.width;
+
+                // Ground Level Landing
+                if (this.y + this.height >= GROUND_Y) {
+                    this.y = GROUND_Y - this.height;
+                    this.vy = 0;
+                    this.isGrounded = true;
+                }
+
+                // Timers & Cooldowns
+                if (this.invulnerableTimer > 0) this.invulnerableTimer--;
+                if (this.attackCooldown > 0) this.attackCooldown--;
+
+                if (this.powerupTimer > 0) {
+                    this.powerupTimer--;
+                    if (this.powerupTimer === 0) {
+                        this.weaponType = 'PENCIL';
+                    }
+                }
+
+                // Animation Counter
+                this.animTimer++;
+                if (this.animTimer > 8) {
+                    this.animTimer = 0;
+                    this.animFrame = (this.animFrame + 1) % 4;
+                }
+
+                // Attack Executed
+                if (keys.attack && this.attackCooldown === 0) {
+                    this.shoot();
+                }
+            }
+
+            shoot() {
+                const speedBonus = upgrades.weaponSpeed * 2;
+                this.attackCooldown = this.weaponType === 'EXCEL_LASER' ? 6 : (this.weaponType === 'NOTE_SPREAD' ? 12 : Math.max(8, 16 - speedBonus));
+                
+                const dir = this.facingRight ? 1 : -1;
+                const startX = this.facingRight ? this.x + this.width : this.x - 12;
+                const startY = this.y + 16;
+
+                if (this.weaponType === 'PENCIL') {
+                    audio.playShoot();
+                    projectiles.push(new Projectile(startX, startY, dir * (8 + speedBonus), 0, 'AIRPLANE'));
+                } else if (this.weaponType === 'EXCEL_LASER') {
+                    audio.playLaser();
+                    projectiles.push(new Projectile(startX, startY, dir * 16, 0, 'LASER'));
+                } else if (this.weaponType === 'NOTE_SPREAD') {
+                    audio.playShoot();
+                    projectiles.push(new Projectile(startX, startY, dir * 8, -2, 'NOTE'));
+                    projectiles.push(new Projectile(startX, startY, dir * 9, 0, 'NOTE'));
+                    projectiles.push(new Projectile(startX, startY, dir * 8, 2, 'NOTE'));
+                }
+            }
+
+            takeDamage(amount) {
+                if (this.invulnerableTimer > 0) return;
+
+                if (this.hasShield) {
+                    this.shieldHealth -= amount;
+                    audio.playBeep(200, 0.1, 'sawtooth');
+                    if (this.shieldHealth <= 0) {
+                        this.hasShield = false;
+                    }
+                    this.invulnerableTimer = 30;
+                    triggerScreenShake(8);
+                    return;
+                }
+
+                this.health -= amount;
+                audio.playExplode();
+                triggerScreenShake(12);
+                this.invulnerableTimer = 45;
+
+                if (this.health <= 0) {
+                    this.health = 0;
+                    gameState = 'GAMEOVER';
+                    if (score > highScore) {
+                        highScore = score;
+                        localStorage.setItem('clippy_high_score_v2', highScore);
+                    }
+                }
+            }
+
+            draw() {
+                ctx.save();
+                if (this.invulnerableTimer % 6 > 3) {
+                    ctx.restore();
+                    return;
+                }
+
+                const px = Math.floor(this.x);
+                const py = Math.floor(this.y);
+
+                // Word Shield Bubble Effect
+                if (this.hasShield) {
+                    ctx.strokeStyle = '#2b579a';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(px + 16, py + 20, 28, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.fillStyle = 'rgba(43, 87, 154, 0.25)';
+                    ctx.fill();
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = '8px "Press Start 2P"';
+                    ctx.fillText(`W:${this.shieldHealth}`, px - 2, py - 12);
+                }
+
+                // Drawing Clippy Pixel Art Body
+                ctx.fillStyle = '#c0c0c0'; // Wire Silver
+                
+                // Outer Wire Loop
+                ctx.fillRect(px + 8, py, 16, 4);
+                ctx.fillRect(px + 4, py + 4, 4, 32);
+                ctx.fillRect(px + 24, py + 4, 4, 28);
+                ctx.fillRect(px + 8, py + 36, 16, 4);
+
+                // Inner Loop
+                ctx.fillRect(px + 12, py + 12, 4, 20);
+                ctx.fillRect(px + 20, py + 16, 4, 16);
+                ctx.fillRect(px + 12, py + 12, 10, 4);
+
+                // Expressive Googly Eyes
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(px + (this.facingRight ? 10 : 2), py + 8, 10, 10);
+                ctx.fillRect(px + (this.facingRight ? 20 : 12), py + 8, 10, 10);
+
+                ctx.fillStyle = '#000000';
+                const eyeOffset = this.facingRight ? 4 : 0;
+                const bobY = Math.sin(this.animFrame) * 1;
+                ctx.fillRect(px + 12 + eyeOffset, py + 11 + bobY, 4, 4);
+                ctx.fillRect(px + 22 + eyeOffset, py + 11 + bobY, 4, 4);
+
+                // Animated Eyebrows
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(px + (this.facingRight ? 8 : 2), py + 5, 12, 2);
+                ctx.fillRect(px + (this.facingRight ? 18 : 12), py + 5, 12, 2);
+
+                // Weapon Spear Visual
+                ctx.fillStyle = '#ffcc00';
+                if (this.facingRight) {
+                    ctx.fillRect(px + 24, py + 22, 14, 4);
+                    ctx.fillStyle = '#ff0000';
+                    ctx.fillRect(px + 36, py + 21, 4, 6);
+                } else {
+                    ctx.fillRect(px - 6, py + 22, 14, 4);
+                    ctx.fillStyle = '#ff0000';
+                    ctx.fillRect(px - 8, py + 21, 4, 6);
+                }
+
+                ctx.restore();
+            }
+        }
+
+        class SkibidiEnemy {
+            constructor(type = 'NORMAL', x = GAME_WIDTH + 30) {
+                this.type = type; // 'NORMAL', 'FAST', 'FLYING', 'HEAVY', 'BOSS'
+                this.x = x;
+                this.y = GROUND_Y - 36;
+                this.width = 36;
+                this.height = 36;
+                this.vx = -1.8;
+                this.vy = 0;
+                this.health = 2;
+                this.maxHealth = 2;
+                this.points = 100;
+                this.shootTimer = 0;
+
+                if (type === 'FAST') {
+                    this.vx = -3.4;
+                    this.health = 1;
+                    this.points = 150;
+                } else if (type === 'FLYING') {
+                    this.y = GROUND_Y - 100 - Math.random() * 90;
+                    this.vx = -2.4;
+                    this.health = 2;
+                    this.points = 200;
+                } else if (type === 'HEAVY') {
+                    this.width = 46;
+                    this.height = 46;
+                    this.y = GROUND_Y - 46;
+                    this.vx = -1.0;
+                    this.health = 6;
+                    this.maxHealth = 6;
+                    this.points = 350;
+                } else if (type === 'BOSS') {
+                    this.width = 90;
+                    this.height = 100;
+                    this.y = GROUND_Y - 100;
+                    this.vx = -0.9;
+                    this.health = 40 + (wave * 12);
+                    this.maxHealth = this.health;
+                    this.points = 3000;
+                }
+            }
+
+            update() {
+                this.x += this.vx;
+
+                if (this.type === 'FLYING') {
+                    this.y += Math.sin(Date.now() / 180) * 1.8;
+                }
+
+                if (this.type === 'BOSS') {
+                    if (this.x < GAME_WIDTH - 240) this.vx = 1.4;
+                    if (this.x > GAME_WIDTH - 90) this.vx = -1.4;
+
+                    this.shootTimer++;
+                    if (this.shootTimer > 80) {
+                        this.shootTimer = 0;
+                        enemyProjectiles.push(new EnemyProjectile(this.x, this.y + 40, -5, (Math.random() - 0.5) * 4));
+                    }
+                }
+            }
+
+            draw() {
+                const px = Math.floor(this.x);
+                const py = Math.floor(this.y);
+
+                ctx.save();
+                if (this.type === 'BOSS') {
+                    // Titan Skibidi Boss
+                    ctx.fillStyle = '#e0e0e0';
+                    ctx.fillRect(px + 10, py + 40, 70, 50); // Bowl
+                    ctx.fillRect(px + 25, py + 90, 40, 10); // Base
+                    ctx.fillStyle = '#c0c0c0';
+                    ctx.fillRect(px, py + 10, 30, 50); // Tank
+
+                    // Skibidi Head
+                    ctx.fillStyle = '#ffcc99';
+                    ctx.fillRect(px + 32, py + 8, 34, 34);
+
+                    // Evil Face Details
+                    ctx.fillStyle = '#000000';
+                    ctx.fillRect(px + 38, py + 16, 8, 8);
+                    ctx.fillRect(px + 52, py + 16, 8, 8);
+                    ctx.fillStyle = '#ff0000'; // Glowing laser eyes
+                    ctx.fillRect(px + 41, py + 19, 3, 3);
+                    ctx.fillRect(px + 55, py + 19, 3, 3);
+
+                    // Evil Grin
+                    ctx.fillStyle = '#800000';
+                    ctx.fillRect(px + 40, py + 30, 18, 5);
+
+                    // Boss Health Bar Header
+                    ctx.fillStyle = '#000000';
+                    ctx.fillRect(px, py - 18, this.width, 8);
+                    ctx.fillStyle = '#ff0000';
+                    const hpRatio = Math.max(0, this.health / this.maxHealth);
+                    ctx.fillRect(px, py - 18, this.width * hpRatio, 8);
+
+                } else {
+                    // Standard Toilet Unit
+                    ctx.fillStyle = '#d0d0d0';
+                    ctx.fillRect(px, py, 12, 24); // Tank
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(px + 8, py + 14, this.width - 10, this.height - 14); // Bowl
+
+                    // Head Sticking Out
+                    ctx.fillStyle = '#ffdbac';
+                    ctx.fillRect(px + 14, py + 2, 16, 16);
+
+                    // Eyes & Mouth
+                    ctx.fillStyle = '#000000';
+                    ctx.fillRect(px + 17, py + 6, 3, 3);
+                    ctx.fillRect(px + 23, py + 6, 3, 3);
+                    ctx.fillRect(px + 18, py + 12, 8, 2);
+
+                    if (this.type === 'HEAVY') {
+                        ctx.fillStyle = '#404040'; // Armor plating
+                        ctx.fillRect(px + 6, py + 18, this.width - 6, 6);
+                    } else if (this.type === 'FAST') {
+                        ctx.fillStyle = '#ff4500'; // Fire trail
+                        ctx.fillRect(px - 6, py + 22, 8, 8);
+                    } else if (this.type === 'FLYING') {
+                        ctx.fillStyle = '#70a1ff'; // Wings
+                        ctx.fillRect(px + 8, py - 6, 14, 6);
+                    }
+                }
+                ctx.restore();
+            }
+        }
+
+        class Projectile {
+            constructor(x, y, vx, vy, type = 'AIRPLANE') {
+                this.x = x;
+                this.y = y;
+                this.vx = vx;
+                this.vy = vy;
+                this.type = type;
+                this.width = type === 'LASER' ? 22 : 12;
+                this.height = type === 'LASER' ? 6 : 10;
+                this.active = true;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                if (this.x < -30 || this.x > GAME_WIDTH + 30 || this.y < -30 || this.y > GAME_HEIGHT) {
+                    this.active = false;
+                }
+            }
+
+            draw() {
+                const px = Math.floor(this.x);
+                const py = Math.floor(this.y);
+
+                ctx.save();
+                if (this.type === 'AIRPLANE') {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.moveTo(px, py);
+                    ctx.lineTo(px + 16, py + 5);
+                    ctx.lineTo(px, py + 10);
+                    ctx.lineTo(px + 4, py + 5);
+                    ctx.fill();
+                    ctx.strokeStyle = '#808080';
+                    ctx.stroke();
+                } else if (this.type === 'LASER') {
+                    ctx.fillStyle = '#107c41'; // Excel Green Laser
+                    ctx.fillRect(px, py, 22, 6);
+                    ctx.fillStyle = '#7fba00';
+                    ctx.fillRect(px + 2, py + 1, 18, 4);
+                } else if (this.type === 'NOTE') {
+                    ctx.fillStyle = '#ffeb3b'; // Sticky note
+                    ctx.fillRect(px, py, 12, 12);
+                }
+                ctx.restore();
+            }
+        }
+
+        class EnemyProjectile {
+            constructor(x, y, vx, vy) {
+                this.x = x;
+                this.y = y;
+                this.vx = vx;
+                this.vy = vy;
+                this.width = 12;
+                this.height = 12;
+                this.active = true;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                if (this.x < -20 || this.x > GAME_WIDTH + 20) this.active = false;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.fillStyle = '#00ffff';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 6, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        class PowerUp {
+            constructor(x, y, type) {
+                this.x = x;
+                this.y = y;
+                this.type = type; // 'WORD_SHIELD', 'EXCEL_LASER', 'NOTE_SPREAD', 'HEALTH', 'PIN'
+                this.width = 24;
+                this.height = 24;
+                this.vy = 2;
+                this.active = true;
+            }
+
+            update() {
+                if (this.y + this.height < GROUND_Y) {
+                    this.y += this.vy;
+                }
+            }
+
+            draw() {
+                const px = Math.floor(this.x);
+                const py = Math.floor(this.y);
+
+                ctx.save();
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(px, py, 24, 24);
+                ctx.strokeStyle = '#000000';
+                ctx.strokeRect(px, py, 24, 24);
+
+                ctx.font = '10px "Press Start 2P"';
+                if (this.type === 'WORD_SHIELD') {
+                    ctx.fillStyle = '#2b579a';
+                    ctx.fillText('W', px + 7, py + 17);
+                } else if (this.type === 'EXCEL_LASER') {
+                    ctx.fillStyle = '#107c41';
+                    ctx.fillText('X', px + 7, py + 17);
+                } else if (this.type === 'NOTE_SPREAD') {
+                    ctx.fillStyle = '#d4ac0d';
+                    ctx.fillText('N', px + 7, py + 17);
+                } else if (this.type === 'HEALTH') {
+                    ctx.fillStyle = '#e74c3c';
+                    ctx.fillRect(px + 9, py + 4, 6, 16);
+                    ctx.fillRect(px + 4, py + 9, 16, 6);
+                } else if (this.type === 'PIN') {
+                    ctx.fillStyle = '#2980b9';
+                    ctx.fillText('📎', px + 2, py + 17);
+                }
+                ctx.restore();
+            }
+        }
+
+        class FloatingText {
+            constructor(x, y, text, color = '#ffffff') {
+                this.x = x;
+                this.y = y;
+                this.text = text;
+                this.color = color;
+                this.life = 1.0;
+                this.vy = -1;
+            }
+
+            update() {
+                this.y += this.vy;
+                this.life -= 0.025;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, this.life);
+                ctx.fillStyle = this.color;
+                ctx.font = '10px "Press Start 2P"';
+                ctx.fillText(this.text, this.x, this.y);
+                ctx.restore();
+            }
+        }
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 7;
+                this.vy = (Math.random() - 0.5) * 7;
+                this.color = color;
+                this.size = Math.random() * 4 + 2;
+                this.life = 1.0;
+                this.decay = Math.random() * 0.04 + 0.02;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life -= this.decay;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, this.life);
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x, this.y, this.size, this.size);
+                ctx.restore();
+            }
+        }
+
+        // Object Storage Arrays
+        const hero = new ClippyHero();
+        let enemies = [];
+        let projectiles = [];
+        let enemyProjectiles = [];
+        let powerups = [];
+        let particles = [];
+        let floatingTexts = [];
+
+        function triggerScreenShake(duration) {
+            screenShakeTime = duration;
+        }
+
+        function createExplosion(x, y, color = '#ffffff', count = 14) {
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        function startNewWave(w) {
+            wave = w;
+            waveEnemiesToSpawn = 8 + wave * 4;
+            enemiesSpawnedInWave = 0;
+            bossActive = false;
+        }
+
+        function startCampaignLevel(lvlIdx) {
+            currentLevel = lvlIdx;
+            waveEnemiesToSpawn = campaignLevels[lvlIdx].targetEnemies;
+            enemiesSpawnedInWave = 0;
+            bossActive = false;
+            enemies = [];
+            projectiles = [];
+            hero.reset();
+            gameState = 'PLAYING';
+        }
+
+        function updateSpawner() {
+            if (bossActive) return;
+
+            waveTimer++;
+            if (waveTimer > Math.max(25, 75 - wave * 4)) {
+                waveTimer = 0;
+
+                if (enemiesSpawnedInWave < waveEnemiesToSpawn) {
+                    enemiesSpawnedInWave++;
+                    const rand = Math.random();
+                    if (rand < 0.5) {
+                        enemies.push(new SkibidiEnemy('NORMAL'));
+                    } else if (rand < 0.7) {
+                        enemies.push(new SkibidiEnemy('FAST'));
+                    } else if (rand < 0.88) {
+                        enemies.push(new SkibidiEnemy('FLYING'));
+                    } else {
+                        enemies.push(new SkibidiEnemy('HEAVY'));
+                    }
+                } else if (enemies.length === 0 && !bossActive) {
+                    if (gameMode === 'ARCADE' || (gameMode === 'CAMPAIGN' && campaignLevels[currentLevel].boss)) {
+                        bossActive = true;
+                        audio.currentTrack = 1;
+                        audio.startBGM();
+                        enemies.push(new SkibidiEnemy('BOSS', GAME_WIDTH + 10));
+                    } else if (gameMode === 'CAMPAIGN') {
+                        // Level cleared
+                        if (currentLevel < campaignLevels.length - 1) {
+                            startCampaignLevel(currentLevel + 1);
+                        } else {
+                            gameState = 'VICTORY';
+                        }
+                    }
+                }
+            }
+        }
+
+        function drawBackground() {
+            // Environment Renderer based on Wallpaper selection or Campaign Level
+            ctx.fillStyle = '#008080';
+            ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+            // Desktop Icons
+            drawDesktopIcon(30, 30, 'My Computer', '#00a8a8');
+            drawDesktopIcon(30, 110, 'Recycle Bin', '#a8a8a8');
+            drawDesktopIcon(30, 190, 'My Documents', '#d4ac0d');
+            drawDesktopIcon(30, 270, 'Internet Explorer', '#3498db');
+
+            // Desk Platform Base
+            ctx.fillStyle = '#c0c0c0';
+            ctx.fillRect(0, GROUND_Y, GAME_WIDTH, GAME_HEIGHT - GROUND_Y);
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, GROUND_Y, GAME_WIDTH, 3);
+            ctx.fillStyle = '#808080';
+            ctx.fillRect(0, GROUND_Y + 3, GAME_WIDTH, 3);
+
+            // Grid Pattern
+            ctx.strokeStyle = '#b0b0b0';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < GAME_WIDTH; x += 40) {
+                ctx.beginPath();
+                ctx.moveTo(x, GROUND_Y);
+                ctx.lineTo(x, GAME_HEIGHT);
+                ctx.stroke();
+            }
+        }
+
+        function drawDesktopIcon(x, y, label, color) {
+            ctx.save();
+            ctx.fillStyle = color;
+            ctx.fillRect(x + 4, y, 24, 20);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(x + 8, y + 4, 16, 12);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '8px "Press Start 2P"';
+            ctx.fillText(label, x - 10, y + 32);
+            ctx.restore();
+        }
+
+        // HUD Rendering
+        function drawHUD() {
+            ctx.save();
+            ctx.font = '10px "Press Start 2P"';
+            ctx.fillStyle = '#ffffff';
+
+            ctx.fillText(`SCORE: ${score}`, 15, 25);
+            ctx.fillText(`PINS: ${pinsCollected} 📎`, 170, 25);
+            if (gameMode === 'ARCADE') {
+                ctx.fillText(`WAVE: ${wave}`, 340, 25);
+            } else {
+                ctx.fillText(`LVL: ${currentLevel + 1}`, 340, 25);
+            }
+
+            // Health Heart Display
+            ctx.fillText('HP:', 600, 25);
+            for (let i = 0; i < hero.maxHealth; i++) {
+                if (i < hero.health) {
+                    ctx.fillStyle = '#e74c3c';
+                    ctx.fillRect(640 + i * 18, 15, 14, 14);
+                } else {
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.strokeRect(640 + i * 18, 15, 14, 14);
+                }
+            }
+
+            if (hero.weaponType !== 'PENCIL') {
+                ctx.fillStyle = '#ffeb3b';
+                ctx.fillText(`PWR: ${hero.weaponType} (${Math.ceil(hero.powerupTimer/60)}s)`, 15, 45);
+            }
+
+            ctx.restore();
+        }
+
+        function checkCollisions() {
+            // Hero vs Enemies
+            enemies.forEach(enemy => {
+                if (rectIntersect(hero, enemy)) {
+                    hero.takeDamage(1);
+                }
+            });
+
+            // Hero vs Enemy Projectiles
+            enemyProjectiles.forEach(p => {
+                if (p.active && rectIntersect(hero, p)) {
+                    p.active = false;
+                    hero.takeDamage(1);
+                    createExplosion(p.x, p.y, '#00ffff', 6);
+                }
+            });
+
+            // Player Attacks vs Enemies
+            projectiles.forEach(p => {
+                if (!p.active) return;
+                enemies.forEach(enemy => {
+                    if (rectIntersect(p, enemy)) {
+                        p.active = false;
+                        const dmg = (p.type === 'LASER' ? 3 : 1);
+                        enemy.health -= dmg;
+                        audio.playBeep(300, 0.05, 'triangle');
+                        
+                        // Floating Damage Text
+                        floatingTexts.push(new FloatingText(enemy.x + 10, enemy.y, `-${dmg}`, '#ff3333'));
+                        createExplosion(p.x, p.y, '#ffcc00', 5);
+
+                        if (enemy.health <= 0) {
+                            score += enemy.points;
+                            pinsCollected += Math.floor(enemy.points / 50);
+                            document.getElementById('pinCounter').innerText = pinsCollected;
+                            localStorage.setItem('clippy_pins', pinsCollected);
+
+                            audio.playExplode();
+                            createExplosion(enemy.x + enemy.width/2, enemy.y + enemy.height/2, '#ffffff', 18);
+
+                            // Drop Powerups or Pins
+                            if (Math.random() < 0.25) {
+                                const types = ['WORD_SHIELD', 'EXCEL_LASER', 'NOTE_SPREAD', 'HEALTH', 'PIN'];
+                                const picked = types[Math.floor(Math.random() * types.length)];
+                                powerups.push(new PowerUp(enemy.x, enemy.y, picked));
+                            }
+
+                            if (enemy.type === 'BOSS') {
+                                bossActive = false;
+                                audio.currentTrack = 0;
+                                audio.startBGM();
+                                if (gameMode === 'ARCADE') {
+                                    setTimeout(() => startNewWave(wave + 1), 1500);
+                                } else {
+                                    if (currentLevel < campaignLevels.length - 1) {
+                                        setTimeout(() => startCampaignLevel(currentLevel + 1), 1500);
+                                    } else {
+                                        gameState = 'VICTORY';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+
+            // Hero vs Powerups
+            powerups.forEach(pw => {
+                if (pw.active && rectIntersect(hero, pw)) {
+                    pw.active = false;
+                    audio.playPowerup();
+
+                    if (pw.type === 'WORD_SHIELD') {
+                        hero.hasShield = true;
+                        hero.shieldHealth = 3 + upgrades.shieldHp;
+                        floatingTexts.push(new FloatingText(hero.x, hero.y - 10, 'WORD SHIELD!', '#2b579a'));
+                    } else if (pw.type === 'EXCEL_LASER') {
+                        hero.weaponType = 'EXCEL_LASER';
+                        hero.powerupTimer = 360 + (upgrades.laserDuration * 180);
+                        floatingTexts.push(new FloatingText(hero.x, hero.y - 10, 'EXCEL LASER!', '#107c41'));
+                    } else if (pw.type === 'NOTE_SPREAD') {
+                        hero.weaponType = 'NOTE_SPREAD';
+                        hero.powerupTimer = 400;
+                        floatingTexts.push(new FloatingText(hero.x, hero.y - 10, 'NOTE SPREAD!', '#d4ac0d'));
+                    } else if (pw.type === 'HEALTH') {
+                        hero.health = Math.min(hero.maxHealth, hero.health + 2);
+                        floatingTexts.push(new FloatingText(hero.x, hero.y - 10, '+HP REPAIR', '#e74c3c'));
+                    } else if (pw.type === 'PIN') {
+                        pinsCollected += 5;
+                        document.getElementById('pinCounter').innerText = pinsCollected;
+                        localStorage.setItem('clippy_pins', pinsCollected);
+                        floatingTexts.push(new FloatingText(hero.x, hero.y - 10, '+5 PINS!', '#2980b9'));
+                    }
+                }
+            });
+
+            // Cleanup
+            enemies = enemies.filter(e => e.health > 0 && e.x > -100);
+            projectiles = projectiles.filter(p => p.active);
+            enemyProjectiles = enemyProjectiles.filter(p => p.active);
+            powerups = powerups.filter(p => p.active);
+            particles = particles.filter(pt => pt.life > 0);
+            floatingTexts = floatingTexts.filter(ft => ft.life > 0);
+        }
+
+        function rectIntersect(r1, r2) {
+            return !(r2.x > r1.x + r1.width ||
+                     r2.x + r2.width < r1.x ||
+                     r2.y > r1.y + r1.height ||
+                     r2.y + r2.height < r1.y);
+        }
+
+        function drawMenuScreen() {
+            drawBackground();
+
+            ctx.save();
+            ctx.fillStyle = 'rgba(0,0,0,0.5)';
+            ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+            // Win95 Dialog Frame
+            ctx.fillStyle = '#c0c0c0';
+            ctx.fillRect(140, 60, 520, 320);
+            ctx.strokeStyle = '#ffffff';
+            ctx.strokeRect(140, 60, 520, 320);
+
+            // Dialog Titlebar
+            ctx.fillStyle = '#000080';
+            ctx.fillRect(144, 64, 512, 28);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '11px "Press Start 2P"';
+            ctx.fillText('CLIPPY VS SKIBIDI: DESKTOP DEFENSE', 155, 83);
+
+            // Options
+            ctx.fillStyle = '#000000';
+            ctx.font = '10px "Press Start 2P"';
+            ctx.fillText('SELECT GAME MODE:', 170, 130);
+
+            // Arcade Mode Button
+            ctx.fillStyle = '#008000';
+            ctx.fillRect(170, 160, 220, 50);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText('1. ARCADE WAVE', 185, 190);
+
+            // Campaign Mode Button
+            ctx.fillStyle = '#000080';
+            ctx.fillRect(410, 160, 220, 50);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText('2. CAMPAIGN', 435, 190);
+
+            ctx.fillStyle = '#000000';
+            ctx.font = '9px "Press Start 2P"';
+            ctx.fillText('Help Clippy save Office from the Skibidi invasion!', 165, 255);
+            ctx.fillText(`HIGH SCORE: ${highScore}  |  PINS: ${pinsCollected} 📎`, 185, 290);
+
+            ctx.restore();
+        }
+
+        function drawGameOverScreen() {
+            ctx.save();
+            ctx.fillStyle = 'rgba(0, 0, 128, 0.85)'; // Classic BSOD Blue
+            ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '16px "Press Start 2P"';
+            ctx.fillText('*** FATAL EXCEPTION: SYSTEM CRASH ***', 100, 100);
+
+            ctx.font = '10px "Press Start 2P"';
+            ctx.fillText('Clippy was defeated by Skibidi Toilet!', 180, 160);
+            ctx.fillText(`FINAL SCORE: ${score}`, 280, 210);
+            ctx.fillText(`HIGH SCORE: ${highScore}`, 280, 240);
+
+            ctx.fillStyle = '#c0c0c0';
+            ctx.fillRect(280, 290, 240, 45);
+            ctx.fillStyle = '#000000';
+            ctx.fillText('CLICK TO RESTART', 305, 318);
+
+            ctx.restore();
+        }
+
+        function drawVictoryScreen() {
+            ctx.save();
+            ctx.fillStyle = 'rgba(0, 128, 0, 0.85)';
+            ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '16px "Press Start 2P"';
+            ctx.fillText('🎉 CAMPAIGN COMPLETED! 🎉', 180, 120);
+
+            ctx.font = '10px "Press Start 2P"';
+            ctx.fillText('You successfully defended the Desktop!', 160, 180);
+            ctx.fillText(`FINAL SCORE: ${score}`, 280, 230);
+
+            ctx.fillStyle = '#c0c0c0';
+            ctx.fillRect(280, 280, 240, 45);
+            ctx.fillStyle = '#000000';
+            ctx.fillText('MAIN MENU', 340, 308);
+
+            ctx.restore();
+        }
+
+        function gameLoop() {
+            ctx.save();
+
+            // Handle CRT Screen Shake
+            if (screenShakeTime > 0) {
+                screenShakeTime--;
+                const offsetX = (Math.random() - 0.5) * 8;
+                const offsetY = (Math.random() - 0.5) * 8;
+                ctx.translate(offsetX, offsetY);
+            }
+
+            ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+            if (gameState === 'MENU') {
+                drawMenuScreen();
+            } else if (gameState === 'PLAYING') {
+                updateSpawner();
+                hero.update();
+
+                enemies.forEach(e => e.update());
+                projectiles.forEach(p => p.update());
+                enemyProjectiles.forEach(p => p.update());
+                powerups.forEach(p => p.update());
+                particles.forEach(p => p.update());
+                floatingTexts.forEach(ft => ft.update());
+
+                checkCollisions();
+
+                // Draw World Scene
+                drawBackground();
+                powerups.forEach(p => p.draw());
+                enemies.forEach(e => e.draw());
+                projectiles.forEach(p => p.draw());
+                enemyProjectiles.forEach(p => p.draw());
+                hero.draw();
+                particles.forEach(p => p.draw());
+                floatingTexts.forEach(ft => ft.draw());
+                drawHUD();
+
+            } else if (gameState === 'GAMEOVER') {
+                drawBackground();
+                hero.draw();
+                drawGameOverScreen();
+            } else if (gameState === 'VICTORY') {
+                drawBackground();
+                drawVictoryScreen();
+            }
+
+            ctx.restore();
+            requestAnimationFrame(gameLoop);
+        }
+
+        window.addEventListener('keydown', (e) => {
+            audio.init();
+            if (e.code === 'KeyA' || e.code === 'ArrowLeft') keys.left = true;
+            if (e.code === 'KeyD' || e.code === 'ArrowRight') keys.right = true;
+            if (e.code === 'KeyW' || e.code === 'ArrowUp' || e.code === 'Space') keys.up = true;
+            if (e.code === 'KeyJ' || e.code === 'KeyZ') keys.attack = true;
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.code === 'KeyA' || e.code === 'ArrowLeft') keys.left = false;
+            if (e.code === 'KeyD' || e.code === 'ArrowRight') keys.right = false;
+            if (e.code === 'KeyW' || e.code === 'ArrowUp' || e.code === 'Space') keys.up = false;
+            if (e.code === 'KeyJ' || e.code === 'KeyZ') keys.attack = false;
+        });
+
+        // Mouse Click Interactions
+        canvas.addEventListener('click', (e) => {
+            audio.init();
+            const rect = canvas.getBoundingClientRect();
+            const clickX = (e.clientX - rect.left) * (GAME_WIDTH / rect.width);
+            const clickY = (e.clientY - rect.top) * (GAME_HEIGHT / rect.height);
+
+            if (gameState === 'MENU') {
+                if (clickX >= 170 && clickX <= 390 && clickY >= 160 && clickY <= 210) {
+                    gameMode = 'ARCADE';
+                    score = 0;
+                    hero.reset();
+                    enemies = [];
+                    startNewWave(1);
+                    gameState = 'PLAYING';
+                } else if (clickX >= 410 && clickX <= 630 && clickY >= 160 && clickY <= 210) {
+                    gameMode = 'CAMPAIGN';
+                    score = 0;
+                    startCampaignLevel(0);
+                }
+            } else if (gameState === 'GAMEOVER') {
+                if (clickX >= 280 && clickX <= 520 && clickY >= 290 && clickY <= 335) {
+                    gameState = 'MENU';
+                }
+            } else if (gameState === 'VICTORY') {
+                if (clickX >= 280 && clickX <= 520 && clickY >= 280 && clickY <= 325) {
+                    gameState = 'MENU';
+                }
+            } else if (gameState === 'PLAYING') {
+                hero.shoot();
+            }
+        });
+
+        // Mobile Touch Controller Bindings
+        function bindTouch(btnId, keyProp) {
+            const btn = document.getElementById(btnId);
+            if (!btn) return;
+            btn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                audio.init();
+                keys[keyProp] = true;
+            });
+            btn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                keys[keyProp] = false;
+            });
+        }
+
+        bindTouch('btnLeft', 'left');
+        bindTouch('btnRight', 'right');
+        bindTouch('btnJump', 'up');
+        bindTouch('btnAttack', 'attack');
+
+        // UI Controls & Modals
+        document.getElementById('btnCRT').addEventListener('click', () => {
+            const windowFrame = document.getElementById('windowFrame');
+            windowFrame.classList.toggle('crt-overlay');
+            const isCrt = windowFrame.classList.contains('crt-overlay');
+            document.getElementById('btnCRT').innerText = `CRT: ${isCrt ? 'ON' : 'OFF'}`;
+        });
+
+        document.getElementById('btnSound').addEventListener('click', () => {
+            audio.sfxEnabled = !audio.sfxEnabled;
+            document.getElementById('btnSound').innerText = `🔊 SFX: ${audio.sfxEnabled ? 'ON' : 'OFF'}`;
+        });
+
+        document.getElementById('btnMusic').addEventListener('click', () => {
+            const state = audio.toggleMusic();
+            document.getElementById('btnMusic').innerText = `🎵 BGM: ${state ? 'ON' : 'OFF'}`;
+        });
+
+        // Wallpaper switcher
+        const wallpapers = ['wp-teal', 'wp-bliss', 'wp-cyber'];
+        let curWpIdx = 0;
+        document.getElementById('btnWallpaper').addEventListener('click', () => {
+            const bg = document.getElementById('bgContainer');
+            bg.classList.remove(wallpapers[curWpIdx]);
+            curWpIdx = (curWpIdx + 1) % wallpapers.length;
+            bg.classList.add(wallpapers[curWpIdx]);
+        });
+
+        // Shop Modal Handlers
+        const modalShop = document.getElementById('modalShop');
+        document.getElementById('btnShop').addEventListener('click', () => {
+            document.getElementById('shopPinCount').innerText = pinsCollected;
+            modalShop.classList.remove('hidden');
+        });
+
+        const closeShop = () => modalShop.classList.add('hidden');
+        document.getElementById('btnCloseShop').addEventListener('click', closeShop);
+        document.getElementById('btnCloseShop2').addEventListener('click', closeShop);
+
+        // Shop Purchase Logic
+        function setupShopItem(btnId, upgradeKey, cost, callback) {
+            document.getElementById(btnId).addEventListener('click', () => {
+                if (pinsCollected >= cost) {
+                    pinsCollected -= cost;
+                    upgrades[upgradeKey]++;
+                    localStorage.setItem(`upg_${upgradeKey}`, upgrades[upgradeKey]);
+                    localStorage.setItem('clippy_pins', pinsCollected);
+                    document.getElementById('pinCounter').innerText = pinsCollected;
+                    document.getElementById('shopPinCount').innerText = pinsCollected;
+                    audio.playCoin();
+                    if (callback) callback();
+                } else {
+                    audio.playBeep(150, 0.1, 'sawtooth');
+                }
+            });
+        }
+
+        setupShopItem('buyWeaponSpeed', 'weaponSpeed', 50);
+        setupShopItem('buyShieldHp', 'shieldHp', 75);
+        setupShopItem('buyLaserDuration', 'laserDuration', 100);
+        setupShopItem('buySpeed', 'speed', 60, () => {
+            hero.baseSpeed = 4.5 + (upgrades.speed * 0.6);
+        });
+
+        // Embed / Share Modal
+        const modalShare = document.getElementById('modalShare');
+        document.getElementById('btnShare').addEventListener('click', () => {
+            const embedText = `<iframe src="${window.location.href}" width="820" height="540" frameborder="0" scrolling="no"></iframe>`;
+            document.getElementById('embedCode').value = embedText;
+            modalShare.classList.remove('hidden');
+        });
+
+        const closeShare = () => modalShare.classList.add('hidden');
+        document.getElementById('btnCloseShare').addEventListener('click', closeShare);
+        document.getElementById('btnCloseShare2').addEventListener('click', closeShare);
+
+        document.getElementById('btnCopyEmbed').addEventListener('click', () => {
+            const embedCode = document.getElementById('embedCode');
+            embedCode.select();
+            document.execCommand('copy');
+            alert('Embed code copied to clipboard!');
+        });
+
+        // Sync initial storage UI
+        document.getElementById('pinCounter').innerText = pinsCollected;
+
+        window.onload = function() {
+            gameLoop();
+        };
+    </script>
+</body>
+</html>
